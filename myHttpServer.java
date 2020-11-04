@@ -4,7 +4,8 @@ import java.util.*;
 
 public class myHttpServer implements Runnable
 {
-    public static int port=50062;
+    public static int port;
+    public static String htmlFolder="";
     public Socket client;
 
     public myHttpServer(Socket s)
@@ -14,7 +15,19 @@ public class myHttpServer implements Runnable
 
     public static void main(String[] args)
     {
-        //
+        try
+        {
+        Properties config=new Properties();
+        FileInputStream configInput= new FileInputStream("configuration.properties");
+        config.load(configInput);
+        System.out.println(config.getProperty("port"));
+        port=Integer.parseInt(config.getProperty("port"));
+        }
+        catch(Exception e)
+        {
+            System.out.println("error in the port and directory assigning : "+e.getMessage());
+        }
+
         try
         {
             ServerSocket server=new ServerSocket(port);
@@ -40,7 +53,7 @@ public class myHttpServer implements Runnable
         String path=null;
         String[] pathsplit=new String[3];
         boolean updateCookie=false;
-        int cookie_count=0;
+        int cookie_count=1;
         boolean send_404=false;
 
         try
@@ -49,7 +62,7 @@ public class myHttpServer implements Runnable
             headerOut=new PrintWriter(client.getOutputStream());
             clientout=new BufferedOutputStream(client.getOutputStream());
 
-            String req="Tejaswini";
+            String req="";
             int i=0;
             while (!(req = clientin.readLine()).equals(""))
             {
@@ -131,6 +144,64 @@ public class myHttpServer implements Runnable
 			headerOut.flush();
             clientout.write(htmlByteContent,0,htmlByteContent.length);
             clientout.flush();
+            }
+
+            else if(updateCookie)
+            {
+                switch(pathsplit[2])
+                        {
+                            case "visits.html":
+                                                String htmlContent="<title>txr177</title><h4> Hello, <br/> You have visited the valid URLs on this site for a total of "+cookie_count+" times </h4> (Inclusive of the current visit) <br/> (Delete the cookie stored in the browser to reset the count)";
+                                                byte[] htmlByteContent=htmlContent.getBytes();
+
+                                                headerOut.println("HTTP/1.1 200 Implemented");
+                                                headerOut.println("Date: " + new Date());
+                                                headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"; Path=/txr177/");
+                                                headerOut.println("Content-type: text/html");
+                                                headerOut.println("Content-length: " + htmlByteContent.length);
+                                                headerOut.println();
+                                                headerOut.flush();
+
+                                                clientout.write(htmlByteContent,0,htmlByteContent.length);
+                                                clientout.flush();
+
+                                                break;
+                            case "test1.html":  //call the same function so don't matter to display the html content
+                            case "test2.html":  //so adding one common break
+                                                //reading from the test1.html and test2.html based on the request path
+                                                String resBodyContent="";
+                                                try {
+                                                        File fileObj = new File(pathsplit[2]);
+                                                        Scanner htmlFileReader = new Scanner(fileObj);
+                                                        
+                                                        while (htmlFileReader.hasNextLine()) 
+                                                        {
+                                                            resBodyContent+=htmlFileReader.nextLine();
+                                                        }
+                                                        System.out.println("html content = "+resBodyContent);
+                                                        htmlFileReader.close();
+                                                        
+                                                    } catch (Exception e) 
+                                                    {
+                                                        System.out.println("Error while reading the html files : "+e.getMessage());
+                                                    }
+                                                    finally
+                                                    {
+                                                        byte[] resBodyByte=resBodyContent.getBytes();
+
+                                                        headerOut.println("HTTP/1.1 200 Implemented");
+                                                        headerOut.println("Date: " + new Date());
+                                                        headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"; Path=/txr177/");
+                                                        headerOut.println("Content-type: text/html");
+                                                        headerOut.println("Content-length: " + resBodyByte.length);
+                                                        headerOut.println();
+                                                        headerOut.flush();
+
+                                                        clientout.write(resBodyByte,0,resBodyByte.length);
+                                                        clientout.flush();
+                                                    }
+                                                break;
+                        }
             }
 
         }
