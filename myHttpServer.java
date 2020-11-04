@@ -83,51 +83,21 @@ public class myHttpServer implements Runnable
                             default:
                                                 send_404=true;
                                                 break;
-                            
-                                    /* String htmlContent="<h2>404 Not Found</h2>";
-                                    byte[] htmlByteContent=htmlContent.getBytes();
-
-                                    headerOut.println("HTTP/1.1 404 Implemented");
-                                    headerOut.println("Date: " + new Date());
-                                    //headerOut.println("Set-Cookie: txr177_count_hits=20; Path=/txr177/");
-                                    headerOut.println("Content-type: text/html");
-                                    headerOut.println("Content-length: " + htmlByteContent.length);
-                                    headerOut.println();
-                                    headerOut.flush();
-
-                                    clientout.write(htmlByteContent,0,htmlByteContent.length);
-                                    clientout.flush(); */
                         }
                     }
                     else
                     {
                         send_404=true;
-                            /* String htmlContent="<h2>404 Not Found</h2>";
-                            byte[] htmlByteContent=htmlContent.getBytes();
-
-                            headerOut.println("HTTP/1.1 404 Implemented");
-                            headerOut.println("Date: " + new Date());
-                            //headerOut.println("Set-Cookie: txr177_count_hits=20; Path=/txr177/");
-                            headerOut.println("Content-type: text/html");
-                            headerOut.println("Content-length: " + htmlByteContent.length);
-                            headerOut.println();
-                            headerOut.flush();
-
-                            clientout.write(htmlByteContent,0,htmlByteContent.length);
-                            clientout.flush(); */
                     }
                 }
 
-                else if(req.indexOf("Cookie")!=-1 || i>=14) //if no cookie header sent, check with i
+                else if(req.indexOf("Cookie")!=-1) //if checking for cookie
                 {
                     System.out.println("Well 14?? == "+req);
                     System.out.println("updateCookie flag set to = "+updateCookie);
                     String prev_hits="0";
                     if(updateCookie==true)
                     {
-                        //update cookie header here parse first
-                        if(req.indexOf("Cookie")!=1)
-                        {
                             //header was sent by the browser So paring and attaching it in the response header
                             StringTokenizer reqHeader=new StringTokenizer(req);
                             String txr177_count_hits_cookie=reqHeader.nextToken();
@@ -137,56 +107,31 @@ public class myHttpServer implements Runnable
                             prev_hits=txr177_count_hits_cookie.substring(prev_hits_index+1,txr177_count_hits_cookie.length());
                             System.out.println("this is where we are : "+txr177_count_hits_cookie);
                             System.out.println("prev_hits : "+prev_hits);
-                            cookie_count=Integer.parseInt(prev_hits)+1;
-                            //Exception in thread "Thread-2" java.lang.NullPointerException
-                            //at myHttpServer.run(myHttpServer.java:156)
-                            //at java.lang.Thread.run(Unknown Source)
-                        }
-                        
-                        switch(pathsplit[2])
-                        {
-                            case "visits.html":
-                                                /* int count=Integer.parseInt(prev_hits)+1;
-                                                String htmlContent="<h4> Hello, <br/> You have visited all the valid URLs on this site "+count+" times </h4>";
-                                                byte[] htmlByteContent=htmlContent.getBytes();
-
-                                                headerOut.println("HTTP/1.1 200 Implemented");
-                                                headerOut.println("Date: " + new Date());
-                                                headerOut.println("Set-Cookie: txr177_count_hits="+count+"; Path=/txr177/");
-                                                headerOut.println("Content-type: text/html");
-                                                headerOut.println("Content-length: " + htmlByteContent.length);
-                                                headerOut.println();
-                                                headerOut.flush();
-
-                                                clientout.write(htmlByteContent,0,htmlByteContent.length);
-                                                clientout.flush(); */
-
-                                                break;
-                            case "test1.html":  //call the same function so don't matter to display the html content
-                            case "test2.html": //so adding one common break
-                                                break;
-                        }
+                            cookie_count=Integer.parseInt(prev_hits)+1;                        
                     }
                 }
                 
                 i++;
-                System.out.println("i = "+i);
+                //System.out.println("i = "+i);
             }
 
-            /*String htmlContent="<h2>Tejaswini is the best</h2>";
+            //read all the req headers
+
+            if(send_404)
+            {
+            String htmlContent="<h2>404 Not Found</h2>";
             byte[] htmlByteContent=htmlContent.getBytes();
 
-            headerOut.println("HTTP/1.1 200 Implemented");
+            headerOut.println("HTTP/1.1 404 Implemented");
 			headerOut.println("Date: " + new Date());
-            headerOut.println("Set-Cookie: txr177_count_hits=20; Path=/txr177/");
+            //headerOut.println("Set-Cookie: txr177_count_hits=20; Path=/txr177/");
 			headerOut.println("Content-type: text/html");
 			headerOut.println("Content-length: " + htmlByteContent.length);
-			headerOut.println(); // blank line between headers and content, very important !
+			headerOut.println(); // to differentiate the body of the response
 			headerOut.flush();
-
-            //headerOut.println("");
             clientout.write(htmlByteContent,0,htmlByteContent.length);
-            clientout.flush(); */
+            clientout.flush();
+            }
 
         }
         catch(Exception e)
