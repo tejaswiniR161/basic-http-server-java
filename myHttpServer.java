@@ -40,6 +40,9 @@ public class myHttpServer implements Runnable
         String path=null;
         String[] pathsplit=new String[3];
         boolean updateCookie=false;
+        int cookie_count=0;
+        boolean send_404=false;
+
         try
         {
             clientin=new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -78,8 +81,10 @@ public class myHttpServer implements Runnable
                                                 updateCookie=true;
                                                 break;
                             default:
+                                                send_404=true;
+                                                break;
                             
-                                    String htmlContent="<h2>404 Not Found</h2>";
+                                    /* String htmlContent="<h2>404 Not Found</h2>";
                                     byte[] htmlByteContent=htmlContent.getBytes();
 
                                     headerOut.println("HTTP/1.1 404 Implemented");
@@ -91,12 +96,13 @@ public class myHttpServer implements Runnable
                                     headerOut.flush();
 
                                     clientout.write(htmlByteContent,0,htmlByteContent.length);
-                                    clientout.flush();
+                                    clientout.flush(); */
                         }
                     }
                     else
                     {
-                            String htmlContent="<h2>404 Not Found</h2>";
+                        send_404=true;
+                            /* String htmlContent="<h2>404 Not Found</h2>";
                             byte[] htmlByteContent=htmlContent.getBytes();
 
                             headerOut.println("HTTP/1.1 404 Implemented");
@@ -108,7 +114,7 @@ public class myHttpServer implements Runnable
                             headerOut.flush();
 
                             clientout.write(htmlByteContent,0,htmlByteContent.length);
-                            clientout.flush();
+                            clientout.flush(); */
                     }
                 }
 
@@ -131,7 +137,7 @@ public class myHttpServer implements Runnable
                             prev_hits=txr177_count_hits_cookie.substring(prev_hits_index+1,txr177_count_hits_cookie.length());
                             System.out.println("this is where we are : "+txr177_count_hits_cookie);
                             System.out.println("prev_hits : "+prev_hits);
-
+                            cookie_count=Integer.parseInt(prev_hits)+1;
                             //Exception in thread "Thread-2" java.lang.NullPointerException
                             //at myHttpServer.run(myHttpServer.java:156)
                             //at java.lang.Thread.run(Unknown Source)
@@ -140,7 +146,7 @@ public class myHttpServer implements Runnable
                         switch(pathsplit[2])
                         {
                             case "visits.html":
-                                                int count=Integer.parseInt(prev_hits)+1;
+                                                /* int count=Integer.parseInt(prev_hits)+1;
                                                 String htmlContent="<h4> Hello, <br/> You have visited all the valid URLs on this site "+count+" times </h4>";
                                                 byte[] htmlByteContent=htmlContent.getBytes();
 
@@ -153,7 +159,7 @@ public class myHttpServer implements Runnable
                                                 headerOut.flush();
 
                                                 clientout.write(htmlByteContent,0,htmlByteContent.length);
-                                                clientout.flush();
+                                                clientout.flush(); */
 
                                                 break;
                             case "test1.html":  //call the same function so don't matter to display the html content
