@@ -110,15 +110,16 @@ public class myHttpServer implements Runnable
                     System.out.println("Well 14?? == "+req);
                     System.out.println("updateCookie flag set to = "+updateCookie);
                     String prev_hits="0";
-                    if(updateCookie==true)
+                    if(updateCookie==true && req.indexOf("txr177_count_hits")!=-1)
                     {
                             //header was sent by the browser So paring and attaching it in the response header
                             StringTokenizer reqHeader=new StringTokenizer(req);
                             String txr177_count_hits_cookie=reqHeader.nextToken();
                             txr177_count_hits_cookie=reqHeader.nextToken();
                             //finding the value stored in the cookie
-                            int prev_hits_index=txr177_count_hits_cookie.indexOf("=");
-                            prev_hits=txr177_count_hits_cookie.substring(prev_hits_index+1,txr177_count_hits_cookie.length());
+                            int prev_hits_index=txr177_count_hits_cookie.indexOf("txr177_count_hits=");
+                            System.out.println("prev_hits index at : "+prev_hits_index);
+                            prev_hits=txr177_count_hits_cookie.substring(prev_hits_index+18,txr177_count_hits_cookie.indexOf("EOC"));
                             System.out.println("this is where we are : "+txr177_count_hits_cookie);
                             System.out.println("prev_hits : "+prev_hits);
                             cookie_count=Integer.parseInt(prev_hits)+1;                        
@@ -157,7 +158,7 @@ public class myHttpServer implements Runnable
 
                                                 headerOut.println("HTTP/1.1 200 Implemented");
                                                 headerOut.println("Date: " + new Date());
-                                                headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"; Path=/txr177/");
+                                                headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"EOC; Path=/txr177/");
                                                 headerOut.println("Content-type: text/html");
                                                 headerOut.println("Content-length: " + htmlByteContent.length);
                                                 headerOut.println();
@@ -195,7 +196,7 @@ public class myHttpServer implements Runnable
                                                         headerOut.println("X-Frame-Options: ALLOWALL");
                                                         headerOut.println("set :protection, :except => :frame_options");
                                                         //set :protection, :except => :frame_options
-                                                        headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"; Path=/txr177/");
+                                                        headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"EOC; Path=/txr177/");
                                                         headerOut.println("Content-type: text/html");
                                                         headerOut.println("Content-length: " + resBodyByte.length);
                                                         headerOut.println();
