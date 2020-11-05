@@ -8,7 +8,7 @@ public class myHttpServer implements Runnable
 {
     public static int port;
     public static String htmlFolder="";
-    public static int timeout;
+    public static int timeOut;
     public static boolean persistent;
     public Socket client;
     public LocalTime threadStartTime;
@@ -29,7 +29,7 @@ public class myHttpServer implements Runnable
             port=Integer.parseInt(config.getProperty("port"));
             htmlFolder=config.getProperty("htmlFolder");
             persistent=Boolean.parseBoolean(config.getProperty("persistent"));
-            timeout=Integer.parseInt(config.getProperty("timeOut"));
+            timeOut=Integer.parseInt(config.getProperty("timeOut"));
         }
         catch(Exception e)
         {
@@ -52,7 +52,7 @@ public class myHttpServer implements Runnable
         }
     }
     
-/*     @Override
+/* 
     public void start()
     {
         threadStartTime= LocalTime.now();
@@ -64,10 +64,10 @@ public class myHttpServer implements Runnable
         if(threadStartTime==null)
         {
             threadStartTime= LocalTime.now();
-            System.out.println("thread started at : "+threadStartTime);
+            //System.out.println("thread started at : "+threadStartTime);
         }
 
-        System.out.println("in run - thread started at : "+threadStartTime);
+        //System.out.println("in run - thread started at : "+threadStartTime);
         BufferedReader clientin=null;
         PrintWriter headerOut=null;
         BufferedOutputStream clientout=null;
@@ -250,7 +250,6 @@ public class myHttpServer implements Runnable
                 clientin.close();
                 headerOut.close();
                 clientout.close();
-                System.out.println("Closed all connections successfully!");
             }
             catch(Exception e)
             {
@@ -261,6 +260,8 @@ public class myHttpServer implements Runnable
                 try
                 {
                     client.close();
+                    //t.stop();
+                    System.out.println("Closed all connections successfully!");
                 }
                 catch(Exception e)
                 {
@@ -281,12 +282,13 @@ public class myHttpServer implements Runnable
                 String req="";
                 int i=0;
 
-                while(SECONDS.between(threadStartTime, LocalTime.now())<=30)
+                
+                while(SECONDS.between(threadStartTime, LocalTime.now())<=timeOut)
                 {
                             /* try
                                 { */
                         System.out.println("Listening to client's request...");
-                        System.out.println("seconds = "+SECONDS.between(threadStartTime,LocalTime.now()));
+                        System.out.println("Current connection has been up for "+SECONDS.between(threadStartTime,LocalTime.now())+" seconds");
                                     while (!(req = clientin.readLine()).equals(""))
                                     {
                                         //System.out.println(req);
@@ -308,15 +310,19 @@ public class myHttpServer implements Runnable
                                                 switch(pathsplit[2])
                                                 {
                                                     case "visits.html":
+                                                                        send_404=false;
                                                                         updateCookie=true;
                                                                         break;
                                                     case "test1.html":
+                                                                        send_404=false;
                                                                         updateCookie=true;
                                                                         break;
                                                     case "test2.html":
+                                                                        send_404=false;
                                                                         updateCookie=true;
                                                                         break;
-                                                    default:
+                                                    default:            
+                                                                        updateCookie=false;
                                                                         send_404=true;
                                                                         break;
                                                 }
@@ -464,6 +470,7 @@ public class myHttpServer implements Runnable
                                         try
                                         {
                                             client.close();
+                                            //t.stop();
                                             System.out.println("Closed connection with the client completely");
                                         }
                                         catch(Exception e)
