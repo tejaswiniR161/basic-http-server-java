@@ -218,5 +218,20 @@ public class myHttpServer implements Runnable
             }
             System.out.println("error "+e.getMessage());
         }
+        finally
+        {
+            try
+            {
+                clientin.close();
+                headerOut.close();
+                clientout.close();
+                //client.close();
+                System.out.println("Closed all connections successfully!");
+            }
+            catch(Exception e)
+            {
+                System.out.println("Error while closing connection with browser : "+e.getMessage());
+            }
+        }
     }
 }
