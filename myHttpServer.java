@@ -20,8 +20,9 @@ public class myHttpServer implements Runnable
         Properties config=new Properties();
         FileInputStream configInput= new FileInputStream("configuration.properties");
         config.load(configInput);
-        System.out.println(config.getProperty("port"));
+        System.out.println("Running at port : "+ config.getProperty("port"));
         port=Integer.parseInt(config.getProperty("port"));
+        htmlFolder=config.getProperty("htmlFolder");
         }
         catch(Exception e)
         {
@@ -171,7 +172,7 @@ public class myHttpServer implements Runnable
                                                 //reading from the test1.html and test2.html based on the request path
                                                 String resBodyContent="";
                                                 try {
-                                                        File fileObj = new File(pathsplit[2]);
+                                                        File fileObj = new File(htmlFolder+pathsplit[2]);
                                                         Scanner htmlFileReader = new Scanner(fileObj);
                                                         
                                                         while (htmlFileReader.hasNextLine()) 
@@ -191,6 +192,9 @@ public class myHttpServer implements Runnable
 
                                                         headerOut.println("HTTP/1.1 200 Implemented");
                                                         headerOut.println("Date: " + new Date());
+                                                        headerOut.println("X-Frame-Options: ALLOWALL");
+                                                        headerOut.println("set :protection, :except => :frame_options");
+                                                        //set :protection, :except => :frame_options
                                                         headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"; Path=/txr177/");
                                                         headerOut.println("Content-type: text/html");
                                                         headerOut.println("Content-length: " + resBodyByte.length);
