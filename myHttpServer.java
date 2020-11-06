@@ -81,7 +81,7 @@ public class myHttpServer implements Runnable
         //System.out.println("in run - thread started at : "+threadStartTime);
 
         //declaring all the request readers and response writers below
-        BufferedReader clientin=null;
+        BufferedReader clientIn=null;
         PrintWriter headerOut=null;
         BufferedOutputStream clientout=null;
         String path=null;
@@ -94,34 +94,46 @@ public class myHttpServer implements Runnable
         int cookieCount=1;
         //if the visited path is not valid, the send_404 flag is set to true based on which later, the response is generated
         boolean send_404=false;
+
+        //the persistent data member holds the value from the config file and the below code hadles the non-persistent connections, the else block later deals with persistent connections
         if(!persistent)
         {
         try
         {
-            clientin=new BufferedReader(new InputStreamReader(client.getInputStream()));
+            //initializing the previously declared request readers and response writers fro client socket
+            clientIn=new BufferedReader(new InputStreamReader(client.getInputStream()));
             headerOut=new PrintWriter(client.getOutputStream());
             clientout=new BufferedOutputStream(client.getOutputStream());
 
+            //req will hold all the request headers
             String req="";
-            int i=0;
-            while (!(req = clientin.readLine()).equals(""))
+            //reading all the request headers line by line until the header is blank which happens at the end of a request
+            while (!(req = clientIn.readLine()).equals(""))
             {
             
                 System.out.println(req);
                 if(req.indexOf("GET")!=-1)
                 {
+                    //parsing the get request by using StringTokenizer class
                     StringTokenizer reqHeader=new StringTokenizer(req);
+
+                    //I'm not using method anywhere else later, only to parse to the next element in the current req
                     String method=reqHeader.nextToken().toUpperCase();
+                    
+                    //Fetching the path here
                     path=reqHeader.nextToken().toLowerCase();
                     //System.out.println("method = "+method+" path = "+path);
 
+                    //pathsplit will hold the URL split by / to make it easier to look for file names in the static html folder and to check for valid path and return a 404 page
                     pathsplit=path.split("/");
 
                     //System.out.println("pathsplit[1] "+pathsplit[1]);
                     //System.out.println("pathsplit[2] "+pathsplit[2]);
-
+                    
+                    //checking if valid URL is visited else the send_404 flag is set to true
                     if(pathsplit[1].equals("txr177"))
                     {
+                        //if the /txr177/ path is right, checking for the file requested updateCookie flag is updated accordingly
                         switch(pathsplit[2])
                         {
                             case "visits.html":
@@ -144,10 +156,20 @@ public class myHttpServer implements Runnable
                     }
                 }
 
-                else if(req.indexOf("Cookie")!=-1) //if checking for cookie
+                //Checking for Cookie header in the request sent by the client 
+                //Note: The get and teh Cokkie headers are never in the same line of the request
+                else if(req.indexOf("Cookie")!=-1) 
                 {
                     //System.out.println("Well 14?? == "+req);
                     //System.out.println("updateCookie flag set to = "+updateCookie);
+
+
+                    //parsing the cookie line and updating the cookieCount value of a Cookie header is sent else the value of 1 is considered
+                    //Cookie value is updated only when the request is made to a valid URL
+                    //Note: I'm adding EOC at the end of the cookie value to make it easier to parse, this will not affect the performance of the server in any way
+
+                    //When the code was put on the EECS lab 10 server, there were other cookies and it was harder to parse the cookie value although I have a unique name for the cookie. So, adding "EOC" to the end of the cookie value seemed like a better and easy approah (; as a seperator does not always work for instance when a single cookie is sent in the request a ; is not added in the end) Therefore, I went with my way of identifying the cookie value
+
                     String prev_hits="0";
                     if(updateCookie==true && req.indexOf("txr177_count_hits")!=-1)
                     {
@@ -158,56 +180,67 @@ public class myHttpServer implements Runnable
                             //finding the value stored in the cookie
                             int prev_hits_index=txr177_count_hits_cookie.indexOf("txr177_count_hits=");
                             //System.out.println("prev_hits index at : "+prev_hits_index);
+
+                            //extracting the cookie value from the string between my delimiter and the name of the cookie I've assigned 
                             prev_hits=txr177_count_hits_cookie.substring(prev_hits_index+18,txr177_count_hits_cookie.indexOf("EOC"));
+
                             //System.out.println("this is where we are : "+txr177_count_hits_cookie);
                             //System.out.println("prev_hits : "+prev_hits);
+
+                            //parsing the cookie count into an integer
                             cookieCount=Integer.parseInt(prev_hits)+1;                        
                     }
                 }
-                
-                i++;
-                //System.out.println("i = "+i);
             }
 
-            //read all the req headers
+            //after all the request lines are read, checking for the send_404 and updateCookie flags and sending appropriate reponses
 
             if(send_404)
             {
+
+            //sending response for a wrongly visited URL
             String htmlContent="<h2>404 Not Found</h2>";
             byte[] htmlByteContent=htmlContent.getBytes();
 
             headerOut.println("HTTP/1.1 404 Implemented");
 			headerOut.println("Date: " + new Date());
-            //headerOut.println("Set-Cookie: txr177_count_hits=20; Path=/txr177/");
 			headerOut.println("Content-type: text/html");
 			headerOut.println("Content-length: " + htmlByteContent.length);
-			headerOut.println(); // to differentiate the body of the response
+			headerOut.println(); // to differentiate the body of the response from the header
 			headerOut.flush();
+            //writing the html content onto the response body
             clientout.write(htmlByteContent,0,htmlByteContent.length);
             clientout.flush();
             }
 
             else if(updateCookie)
             {
+
+                //if updateCookie was set to true, that indicates a valid URL was requested and the response body is generated based on the file requested for
                 switch(pathsplit[2])
                         {
                             case "visits.html":
                                                 String htmlContent="<title>txr177</title><h4> Hello, <br/> You have visited the valid URLs on this site for a total of "+cookieCount+" times </h4> (Inclusive of the current visit) <br/> (Delete the cookie stored in the browser to reset the count)";
                                                 byte[] htmlByteContent=htmlContent.getBytes();
 
+                                                //setting necessary headers for the browser to be able to read the content sent
                                                 headerOut.println("HTTP/1.1 200 Implemented");
                                                 headerOut.println("Date: " + new Date());
+                                                //sending the updated cookie value here
                                                 headerOut.println("Set-Cookie: txr177_count_hits="+cookieCount+"EOC; Path=/txr177/");
                                                 headerOut.println("Content-type: text/html");
                                                 headerOut.println("Content-length: " + htmlByteContent.length);
+                                                //this part of the code is for the non-persistent part hence I'm sending the connection close header right away for the browser/client to be aware that the server is closing the connection
                                                 headerOut.println("Connection: close");
                                                 headerOut.println();
                                                 headerOut.flush();
 
+                                                //writing the html content into the reponse body
                                                 clientout.write(htmlByteContent,0,htmlByteContent.length);
                                                 clientout.flush();
 
                                                 break;
+                                                
                             case "test1.html":  //call the same function so don't matter to display the html content
                             case "test2.html":  //so adding one common break
                                                 //reading from the test1.html and test2.html based on the request path
@@ -265,7 +298,7 @@ public class myHttpServer implements Runnable
         {
             try
             {
-                clientin.close();
+                clientIn.close();
                 headerOut.close();
                 clientout.close();
             }
@@ -293,13 +326,11 @@ public class myHttpServer implements Runnable
             //handling the persistant connection
             try
             {
-                clientin=new BufferedReader(new InputStreamReader(client.getInputStream()));
+                clientIn=new BufferedReader(new InputStreamReader(client.getInputStream()));
                 headerOut=new PrintWriter(client.getOutputStream());
                 clientout=new BufferedOutputStream(client.getOutputStream());
 
                 String req="";
-                int i=0;
-
                 
                 while(SECONDS.between(threadStartTime, LocalTime.now())<=timeOut)
                 {
@@ -307,7 +338,7 @@ public class myHttpServer implements Runnable
                                 { */
                         System.out.println("Listening to client's request...");
                         System.out.println("Current connection has been up for "+SECONDS.between(threadStartTime,LocalTime.now())+" seconds");
-                                    while (!(req = clientin.readLine()).equals(""))
+                                    while (!(req = clientIn.readLine()).equals(""))
                                     {
                                         //System.out.println(req);
                                         if(req.indexOf("GET")!=-1)
@@ -372,8 +403,6 @@ public class myHttpServer implements Runnable
                                             }
                                         }
                                         
-                                        i++;
-                                        //System.out.println("i = "+i);
                                     }
 
                                     //read all the req headers
@@ -474,7 +503,7 @@ public class myHttpServer implements Runnable
                                         System.out.println("Time out. Cannot wait for the client anymore..");
                                         //setting connection header to close to let the client know. and closing all the writer objects
                                         headerOut.println("Connection: close");
-                                        clientin.close();
+                                        clientIn.close();
                                         headerOut.close();
                                         clientout.close();
                                         System.out.println("Closed all connections successfully!");
