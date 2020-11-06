@@ -580,8 +580,6 @@ public class myHttpServer implements Runnable
                                         }
                                     }
                             }
-            
-
         }
     }
 }
