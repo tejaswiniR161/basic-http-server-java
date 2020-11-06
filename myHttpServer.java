@@ -229,6 +229,7 @@ public class myHttpServer implements Runnable
                                                 //sending the updated cookie value here
                                                 headerOut.println("Set-Cookie: txr177_count_hits="+cookieCount+"EOC; Path=/txr177/");
                                                 headerOut.println("Content-type: text/html");
+                                                //content lenght= the byte array length that holds the hrml content
                                                 headerOut.println("Content-length: " + htmlByteContent.length);
                                                 //this part of the code is for the non-persistent part hence I'm sending the connection close header right away for the browser/client to be aware that the server is closing the connection
                                                 headerOut.println("Connection: close");
@@ -240,15 +241,17 @@ public class myHttpServer implements Runnable
                                                 clientout.flush();
 
                                                 break;
-                                                
+
                             case "test1.html":  //call the same function so don't matter to display the html content
                             case "test2.html":  //so adding one common break
                                                 //reading from the test1.html and test2.html based on the request path
                                                 String resBodyContent="";
-                                                try {
+                                                try 
+                                                {
+                                                    //the folderpath is read from the config file
                                                         File fileObj = new File(htmlFolder+pathsplit[2]);
                                                         Scanner htmlFileReader = new Scanner(fileObj);
-                                                        
+                                                        //reading the content in the html files and appending it into response body variable
                                                         while (htmlFileReader.hasNextLine()) 
                                                         {
                                                             resBodyContent+=htmlFileReader.nextLine();
@@ -263,28 +266,28 @@ public class myHttpServer implements Runnable
                                                     finally
                                                     {
                                                         byte[] resBodyByte=resBodyContent.getBytes();
-
+                                                        //setting headers
                                                         headerOut.println("HTTP/1.1 200 Implemented");
                                                         headerOut.println("Date: " + new Date());
                                                         headerOut.println("X-Frame-Options: ALLOWALL");
                                                         headerOut.println("set :protection, :except => :frame_options");
                                                         //set :protection, :except => :frame_options
+                                                        //sending updated cookie value here
                                                         headerOut.println("Set-Cookie: txr177_count_hits="+cookieCount+"EOC; Path=/txr177/");
                                                         headerOut.println("Content-type: text/html");
+                                                        //content lenght= the byte array length that holds the hrml content
                                                         headerOut.println("Content-length: " + resBodyByte.length);
+                                                        //this part of the code is for the non-persistent part hence I'm sending the connection close header right away for the browser/client to be aware that the server is closing the connection
                                                         headerOut.println("Connection: close");
                                                         headerOut.println();
                                                         headerOut.flush();
-
+                                                        //write the html content into the response body
                                                         clientout.write(resBodyByte,0,resBodyByte.length);
                                                         clientout.flush();
                                                     }
                                                 break;
                         }
             }
-        //Thread.sleep(10000);
-        //System.out.println("Waiting for more requests from the client... for 10 seconds");
-
         }
         catch(Exception e)
         {
