@@ -2,10 +2,11 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.time.*;
-import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.time.temporal.ChronoUnit.*;
 
 public class myHttpServer implements Runnable
 {
+    // The config file values are read and assigned to the data members
     public static int port;
     public static String htmlFolder="";
     public static int timeOut;
@@ -15,6 +16,7 @@ public class myHttpServer implements Runnable
 
     public myHttpServer(Socket s)
     {
+        //Assigning the accepted socket into the data member for closing it later
         client=s;
     }
 
@@ -22,10 +24,14 @@ public class myHttpServer implements Runnable
     {
         try
         {
+            //reading from the config file by initializing the Properties object, opening and loading the config file label values
             Properties config=new Properties();
             FileInputStream configInput= new FileInputStream("configuration.properties");
             config.load(configInput);
+
             System.out.println("Running at port : "+ config.getProperty("port"));
+
+            //assigning the label values from config file into data members
             port=Integer.parseInt(config.getProperty("port"));
             htmlFolder=config.getProperty("htmlFolder");
             persistent=Boolean.parseBoolean(config.getProperty("persistent"));
@@ -38,11 +44,14 @@ public class myHttpServer implements Runnable
 
         try
         {
+            //instantiating the ServerSocket by passing the port number into the constructor
             ServerSocket server=new ServerSocket(port);
             while(true)
             {
+                //accept incoming requests from clients, start new thread associating with each client
                 myHttpServer obj=new myHttpServer(server.accept());
                 Thread t=new Thread(obj);
+                //calling start which internally calls run function which is overriden below
                 t.start();
             }
         }
@@ -61,6 +70,8 @@ public class myHttpServer implements Runnable
 
     public void run()
     {
+        //if the start of the execution time of the current object is not set yet, set it to the current time
+
         if(threadStartTime==null)
         {
             threadStartTime= LocalTime.now();
@@ -68,13 +79,20 @@ public class myHttpServer implements Runnable
         }
 
         //System.out.println("in run - thread started at : "+threadStartTime);
+
+        //declaring all the request readers and response writers below
         BufferedReader clientin=null;
         PrintWriter headerOut=null;
         BufferedOutputStream clientout=null;
         String path=null;
+
+        //pathsplit will hold the URL split by / to make it easier to look for file names in the static html folder and to check for valid path and return a 404 page
         String[] pathsplit=new String[3];
+        //updateCookie will only be set to true if a valid path is visited by the client
         boolean updateCookie=false;
-        int cookie_count=1;
+        //cookieCount keeps tracks and cookie value sent by the client, if nothing is sent i.e the client is visiting for the first time, it is considered a first visit
+        int cookieCount=1;
+        //if the visited path is not valid, the send_404 flag is set to true based on which later, the response is generated
         boolean send_404=false;
         if(!persistent)
         {
@@ -143,7 +161,7 @@ public class myHttpServer implements Runnable
                             prev_hits=txr177_count_hits_cookie.substring(prev_hits_index+18,txr177_count_hits_cookie.indexOf("EOC"));
                             //System.out.println("this is where we are : "+txr177_count_hits_cookie);
                             //System.out.println("prev_hits : "+prev_hits);
-                            cookie_count=Integer.parseInt(prev_hits)+1;                        
+                            cookieCount=Integer.parseInt(prev_hits)+1;                        
                     }
                 }
                 
@@ -174,12 +192,12 @@ public class myHttpServer implements Runnable
                 switch(pathsplit[2])
                         {
                             case "visits.html":
-                                                String htmlContent="<title>txr177</title><h4> Hello, <br/> You have visited the valid URLs on this site for a total of "+cookie_count+" times </h4> (Inclusive of the current visit) <br/> (Delete the cookie stored in the browser to reset the count)";
+                                                String htmlContent="<title>txr177</title><h4> Hello, <br/> You have visited the valid URLs on this site for a total of "+cookieCount+" times </h4> (Inclusive of the current visit) <br/> (Delete the cookie stored in the browser to reset the count)";
                                                 byte[] htmlByteContent=htmlContent.getBytes();
 
                                                 headerOut.println("HTTP/1.1 200 Implemented");
                                                 headerOut.println("Date: " + new Date());
-                                                headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"EOC; Path=/txr177/");
+                                                headerOut.println("Set-Cookie: txr177_count_hits="+cookieCount+"EOC; Path=/txr177/");
                                                 headerOut.println("Content-type: text/html");
                                                 headerOut.println("Content-length: " + htmlByteContent.length);
                                                 headerOut.println("Connection: close");
@@ -218,7 +236,7 @@ public class myHttpServer implements Runnable
                                                         headerOut.println("X-Frame-Options: ALLOWALL");
                                                         headerOut.println("set :protection, :except => :frame_options");
                                                         //set :protection, :except => :frame_options
-                                                        headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"EOC; Path=/txr177/");
+                                                        headerOut.println("Set-Cookie: txr177_count_hits="+cookieCount+"EOC; Path=/txr177/");
                                                         headerOut.println("Content-type: text/html");
                                                         headerOut.println("Content-length: " + resBodyByte.length);
                                                         headerOut.println("Connection: close");
@@ -350,7 +368,7 @@ public class myHttpServer implements Runnable
                                                     prev_hits=txr177_count_hits_cookie.substring(prev_hits_index+18,txr177_count_hits_cookie.indexOf("EOC"));
                                                     //System.out.println("this is where we are : "+txr177_count_hits_cookie);
                                                     //System.out.println("prev_hits : "+prev_hits);
-                                                    cookie_count=Integer.parseInt(prev_hits)+1;                        
+                                                    cookieCount=Integer.parseInt(prev_hits)+1;                        
                                             }
                                         }
                                         
@@ -381,12 +399,12 @@ public class myHttpServer implements Runnable
                                         switch(pathsplit[2])
                                                 {
                                                     case "visits.html":
-                                                                        String htmlContent="<title>txr177</title><h4> Hello, <br/> You have visited the valid URLs on this site for a total of "+cookie_count+" times </h4> (Inclusive of the current visit) <br/> (Delete the cookie stored in the browser to reset the count)";
+                                                                        String htmlContent="<title>txr177</title><h4> Hello, <br/> You have visited the valid URLs on this site for a total of "+cookieCount+" times </h4> (Inclusive of the current visit) <br/> (Delete the cookie stored in the browser to reset the count)";
                                                                         byte[] htmlByteContent=htmlContent.getBytes();
 
                                                                         headerOut.println("HTTP/1.1 200 Implemented");
                                                                         headerOut.println("Date: " + new Date());
-                                                                        headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"EOC; Path=/txr177/");
+                                                                        headerOut.println("Set-Cookie: txr177_count_hits="+cookieCount+"EOC; Path=/txr177/");
                                                                         headerOut.println("Content-type: text/html");
                                                                         headerOut.println("Content-length: " + htmlByteContent.length);
                                                                         //headerOut.println("Connection: close");
@@ -425,7 +443,7 @@ public class myHttpServer implements Runnable
                                                                                 headerOut.println("X-Frame-Options: ALLOWALL");
                                                                                 headerOut.println("set :protection, :except => :frame_options");
                                                                                 //set :protection, :except => :frame_options
-                                                                                headerOut.println("Set-Cookie: txr177_count_hits="+cookie_count+"EOC; Path=/txr177/");
+                                                                                headerOut.println("Set-Cookie: txr177_count_hits="+cookieCount+"EOC; Path=/txr177/");
                                                                                 headerOut.println("Content-type: text/html");
                                                                                 headerOut.println("Content-length: " + resBodyByte.length);
                                                                                 //headerOut.println("Connection: close");
