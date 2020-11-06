@@ -1,6 +1,8 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.text.*;
+
 import java.time.*;
 import static java.time.temporal.ChronoUnit.*;
 
@@ -12,7 +14,9 @@ public class myHttpServer implements Runnable
     public static int timeOut;
     public static boolean persistent;
     public Socket client;
-    public LocalTime threadStartTime;
+    public int threadStartTime=-1;
+    //public Calendar threadStartTime = Calendar.getInstance();
+    //public Date threadStartTime;
 
     public myHttpServer(Socket s)
     {
@@ -72,9 +76,13 @@ public class myHttpServer implements Runnable
     {
         //if the start of the execution time of the current object is not set yet, set it to the current time
 
-        if(threadStartTime==null)
+        if(threadStartTime==-1) //==null)
         {
-            threadStartTime= LocalTime.now();
+            Format f = new SimpleDateFormat("mm");
+            String strMinute = f.format(new Date());
+            threadStartTime=Integer.parseInt(strMinute);
+
+            //threadStartTime= new Date();//.getTime();
             //System.out.println("thread started at : "+threadStartTime);
         }
 
@@ -341,11 +349,22 @@ public class myHttpServer implements Runnable
                 
                 //until the difference between the time the thread started running and the current time is lesser than the timeout seconds value set in the config file, the below statement hold true
                 
-                while(SECONDS.between(threadStartTime, LocalTime.now())<=timeOut)
+                //while(SECONDS.between(threadStartTime, LocalTime.now())<=timeOut)
+                
+                //Date currTime=new Date();
+                Format f = new SimpleDateFormat("mm");
+                String strMinute = f.format(new Date());
+                int currTime=Integer.parseInt(strMinute);
+
+                System.out.println("curr time .get"+currTime);
+                System.out.println("started running at : "+threadStartTime);
+                //while (threadStartTime.getTime()+(timeOut*1000) <= currTime.getTime()) //.getTime())
+
+                while(currTime<=threadStartTime+timeOut)
                 {
                             
                         System.out.println("Listening to client's request...");
-                        System.out.println("Current connection has been up for "+SECONDS.between(threadStartTime,LocalTime.now())+" seconds");
+                        //System.out.println("Current connection has been up for "+SECONDS.between(threadStartTime,LocalTime.now())+" seconds");
 
                         //reading all the request headers line by line until the header is blank which happens at the end of a request
                                     while (!(req = clientIn.readLine()).equals(""))
